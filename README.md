@@ -10,7 +10,6 @@ var_dump({
         arr2: [1, 2]
     },
     num: 102,
-    big: 1222n,
     func: function () {},
     html: document.createElement("div")
 });
@@ -29,7 +28,6 @@ object(7) {
         }
     }
     ["num"] => number(102)
-    ["big"] => bigint(1222)
     ["func"] => function {
         [name] => func
     }
