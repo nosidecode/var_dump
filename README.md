@@ -16,7 +16,7 @@ var_dump({
 ```
 will return...
 ```
-object(7) {
+object(6) {
     ["str"] => string(5) "hello"
     ["arr"] => array(1) {
         [0] => string(6) "world!"
