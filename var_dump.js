@@ -119,8 +119,10 @@
         return dump + curIndent + "}";
     }
     
-    function var_dump(value) {
-        return _dump(value, 0);
+    function var_dump() {
+        for (var i = 0; i < arguments.length; i++) {
+            console.log(_dump(arguments[i], 0));
+        }
     }
     
     window.var_dump = var_dump;
