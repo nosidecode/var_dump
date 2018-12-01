@@ -26,50 +26,6 @@
         
         return typeof value === "object" && value !== null && value.nodeType === 1 && typeof value.nodeName === "string";
     }
-    
-    /**
-     * Tells if a variable is empty.
-     * Returns FALSE for the following values:
-     *  undefined
-     *  null
-     *  false
-     *  document.all @see https://developer.mozilla.org/en-US/docs/Glossary/Falsy
-     *  [] (empty array)
-     *  {} (empty object)
-     *  "" (empty string)
-     *  0 (as int)
-     *  0.0 (as float)
-     *  NaN
-     * 
-     * @param {any} value
-     * @return {boolean}
-     */
-    function isEmpty(value) {
-        if (!value) {
-            return true;
-        }
-        else if (typeof value === "object") {
-            if (Array.isArray(value)) {
-                return value.length === 0;
-            }
-            else if (Object.keys) {
-                return Object.keys(value).length === 0;
-            }
-            else { // IE 8 or lower (Is there anyone who continues using it?)
-                var count = 0;
-                for (var key in value) {
-                    if (value.hasOwnProperty(key)) {
-                        count++;
-                    }
-                }
-                
-                return count === 0;
-            }
-        }
-        
-        // Not empty!
-        return false;
-    }
 
     function getIndent(level) {
         var str = "";
@@ -87,7 +43,7 @@
         var args = getFuncArgs(func);
         var curIndent = getIndent(level);
         var nextIndent = getIndent(level + 1);
-        var dump = "function {\n" + nextIndent + "[name] => " + (isEmpty(name) ? "(anonymous)" : name);
+        var dump = "function {\n" + nextIndent + "[name] => " + (name.length === 0? "(anonymous)" : name);
 
         if (args.length > 0) {
             dump += "\n" + nextIndent + "[parameters] => {\n";
