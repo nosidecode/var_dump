@@ -14,7 +14,7 @@ var_dump({
     html: document.createElement("div")
 });
 ```
-will return...
+will print...
 ```
 object(6) {
     ["str"] => string(5) "hello"
