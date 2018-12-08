@@ -86,10 +86,10 @@
         return proto;
     }
 
-    var previusObject = null;
+    var previousObject = null;
 
     function varIsObject(obj, level) {
-        if (obj === previusObject) {
+        if (obj === previousObject) {
             return "*RECURSION*";
         }
         else if (obj === null) {
@@ -108,7 +108,7 @@
         var dump = null;
         var length = 0;
         var numericIndex = true;
-        previusObject = obj;
+        previousObject = obj;
 
         if (Array.isArray(obj)) {
             length = obj.length;
