@@ -1,5 +1,5 @@
 (function (window) {
-    function _dump(value, level) {
+    function _dump(value, objStack, level) {
         var dump = typeof value;
 
         switch (dump) {
@@ -8,8 +8,9 @@
             case "number": return dump + "(" + value + ")";
             case "bigint": return dump + "(" + value + ")";
             case "string": return dump + "(" + value.length + ") \"" + value + "\"";
+            case "symbol": return value;
             case "function": return varIsFunction(value, level);
-            case "object": return varIsObject(value, level);
+            case "object": return varIsObject(value, objStack, level);
         }
     }
 
@@ -74,41 +75,31 @@
         return result;
     }
 
-    function getPrototype(instance) {
-        var proto = {};
-
-        for (var name in instance) {
-            if (instance[name] === null || instance[name].constructor.name !== "Function") {
-                proto[name] = instance[name];
-            }
-        }
-
-        return proto;
-    }
-
-    var previousObject = null;
-
-    function varIsObject(obj, level) {
-        if (obj === previousObject) {
+    function varIsObject(obj, stack, level) {
+        if (stack.indexOf(obj) !== -1) {
             return "*RECURSION*";
         }
-        else if (obj === null) {
+
+        if (obj === null) {
             return "NULL";
         }
-        else if (obj === window) {
+
+        if (obj === window) {
             return "object(window)";
         }
-        else if (obj === window.document) {
+
+        if (obj === window.document) {
             return "object(document)";
         }
-        else if (isElement(obj)) {
+
+        if (isElement(obj)) {
             return "HTMLElement(" + obj.nodeName + ")";
         }
 
         var dump = null;
         var length = 0;
         var numericIndex = true;
-        previousObject = obj;
+        stack.push(obj);
 
         if (Array.isArray(obj)) {
             length = obj.length;
@@ -122,9 +113,17 @@
                 name = " " + obj.constructor.name;
 
                 // Get the object properties
-                obj = getPrototype(obj);
+                var proto = {};
+
+                for (var name in obj) {
+                    if (obj[name] === null || obj[name].constructor.name !== "Function") {
+                        proto[name] = obj[name];
+                    }
+                }
+
+                obj = proto;
             }
-            
+
             length = Object.keys(obj).length;
             dump = "object" + name + "(" + length + ") ";
             numericIndex = false;
@@ -140,18 +139,16 @@
         dump += "{\n";
         for (var i in obj) {
             if (obj.hasOwnProperty(i)) {
-                dump += nextIndent + "[" + (numericIndex ? i : "\"" + i + "\"") + "] => " + _dump(obj[i], level + 1) + "\n";
+                dump += nextIndent + "[" + (numericIndex ? i : "\"" + i + "\"") + "] => " + _dump(obj[i], stack, level + 1) + "\n";
             }
         }
 
         return dump + curIndent + "}";
     }
 
-    function var_dump() {
+    window.var_dump = function () {
         for (var i = 0; i < arguments.length; i++) {
-            console.log(_dump(arguments[i], 0));
+            console.log(_dump(arguments[i], [], 0));
         }
-    }
-
-    window.var_dump = var_dump;
+    };
 }(window));
