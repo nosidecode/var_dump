@@ -112,12 +112,16 @@
             if (obj.constructor.name !== "Object") {
                 name = " " + obj.constructor.name;
 
+                if (name.trim() === "") {
+                    name = "@anonymous";
+                }
+
                 // Get the object properties
                 var proto = {};
 
-                for (var name in obj) {
-                    if (obj[name] === null || obj[name].constructor.name !== "Function") {
-                        proto[name] = obj[name];
+                for (var key in obj) {
+                    if (obj[key] === null || obj[key].constructor.name !== "Function") {
+                        proto[key] = obj[key];
                     }
                 }
 
