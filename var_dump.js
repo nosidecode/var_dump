@@ -110,7 +110,7 @@
 
             // The object is an instance of a function
             if (obj.constructor.name !== "Object") {
-                name = " " + obj.constructor.name;
+                name = obj.constructor.name;
 
                 if (name.trim() === "") {
                     name = "@anonymous";
@@ -129,7 +129,7 @@
             }
 
             length = Object.keys(obj).length;
-            dump = "object" + name + "(" + length + ") ";
+            dump = "object(" + name + ") (" + length + ") ";
             numericIndex = false;
         }
 
