@@ -16,12 +16,12 @@ var_dump({
 ```
 will print...
 ```
-object(6) {
+object() (6) {
     ["str"] => string(5) "hello"
     ["arr"] => array(1) {
         [0] => string(6) "world!"
     }
-    ["obj"] => object(1) {
+    ["obj"] => object() (1) {
         ["arr2"] => array(2) {
             [0] => number(1)
             [1] => number(2)
