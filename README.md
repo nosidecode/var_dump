@@ -4,33 +4,41 @@ PHP's var_dump function for JavaScript.
 
 ```js
 var_dump({
-    str: "hello",
-    arr: ["world!"],
-    obj: {
-        arr2: [1, 2]
+    aString: "hello",
+    anArray: ["world!"],
+    anObject: {
+        anotherArray: [1, 2]
     },
-    num: 102,
-    func: function () {},
-    html: document.createElement("div")
+    aNumber: 102,
+    aBigNumber: 102n,
+    aFunction: function (a, b, c) {},
+    aHtmlValue: document.createElement("div")
 });
 ```
 will print...
 ```
-object(Object) (6) {
-    ["str"] => string(5) "hello"
-    ["arr"] => array(1) {
+object(Object) (7) {
+    ["aString"] => string(5) "hello"
+    ["anArray"] => array(1) {
         [0] => string(6) "world!"
     }
-    ["obj"] => object(Object) (1) {
-        ["arr2"] => array(2) {
+    ["anObject"] => object(Object) (1) {
+        ["anotherArray"] => array(2) {
             [0] => number(1)
             [1] => number(2)
         }
     }
-    ["num"] => number(102)
-    ["func"] => function {
-        [name] => func
+    ["aNumber"] => number(102)
+    ["aBigNumber"] => bigint(102)
+    ["aFunction"] => function {
+        [name] => aFunction
+        [parameters] => array(3) {
+            [0] => string(1) "a"
+            [1] => string(1) "b"
+            [2] => string(1) "c"
+        }
     }
-    ["html"] => HTMLElement(DIV)
-}
+    ["aHtmlValue"] => HTMLElement(DIV)
+} debugger eval code:6:21
+
 ```
