@@ -1,72 +1,78 @@
 (function (window) {
-    function _dump(value, objStack, level) {
-        var dump = typeof value;
+    "use strict";
 
-        switch (dump) {
-            case "undefined": return dump;
-            case "boolean": return dump + "(" + (value ? "true" : "false") + ")";
-            case "number": return dump + "(" + value + ")";
-            case "bigint": return dump + "(" + value + ")";
-            case "string": return dump + "(" + value.length + ") \"" + value + "\"";
-            case "symbol": return value;
-            case "function": return varIsFunction(value, level);
-            case "object": return varIsObject(value, objStack, level);
+    function var_dump() {
+        for (var i = 0; i < arguments.length; ++i) {
+            console.log(dump(arguments[i], 0, []));
         }
     }
 
-    /**
-     * Checks if the given value is a HTML element.
-     * 
-     * @param {any} value
-     * @return {boolean}
-     */
-    function isElement(value) {
-        if (typeof HTMLElement === "object") {
-            return value instanceof HTMLElement;
-        }
+    function dump(value, depth, stack) {
+        var type = typeof value;
 
-        return typeof value === "object" && value !== null && value.nodeType === 1 && typeof value.nodeName === "string";
+        switch (type) {
+            case "boolean":
+            case "bigint":
+            case "number":
+                return type + "(" + value + ")";
+
+            case "string":
+                return "string(" + value.length + ") \"" + value + "\"";
+
+            case "function":
+                return dumpFunction(value, depth);
+
+            case "object":
+                if (Array.isArray(value))
+                {
+                    return dumpArray(value, depth, stack);
+                }
+
+                return dumpObject(value, depth, stack);
+
+            default: // undefined, symbol
+                return type;
+        }
     }
 
-    function getIndent(level) {
-        var str = "";
-        level *= 4;
-
-        for (var i = 0; i < level; i++) {
-            str += " ";
+    function createIndentation(depth) {
+        depth *= 4;
+        if (String.prototype.repeat) {
+            return " ".repeat(depth);
         }
 
-        return str;
+        if (depth === 0) {
+            return "";
+        }
+
+        var result = "";
+        for (var i = 0; i < depth; ++i) {
+            result += " ";
+        }
+
+        return result;
     }
 
-    function varIsFunction(func, level) {
-        var name = func.name;
-        var args = getFuncArgs(func);
-        var curIndent = getIndent(level);
-        var nextIndent = getIndent(level + 1);
-        var dump = "function {\n" + nextIndent + "[name] => " + (name.length === 0 ? "(anonymous)" : name);
+    function dumpArray(array, depth, stack) {
+        var result = "array(" + array.length + ") ";
+        var arrayIndent = createIndentation(depth);
+        var propIndent  = createIndentation(depth + 1);
+        result += "{\n";
 
-        if (args.length > 0) {
-            dump += "\n" + nextIndent + "[parameters] => {\n";
-            var argsIndent = getIndent(level + 2);
-
-            for (var i = 0; i < args.length; i++) {
-                dump += argsIndent + args[i] + "\n";
-            }
-
-            dump += nextIndent + "}";
+        for (var i = 0; i < array.length; ++i) {
+            result += propIndent + "[" + i + "] => " + dump(array[i], depth + 1, stack) + "\n";
         }
 
-        return dump + "\n" + curIndent + "}";
+        return "" + result + arrayIndent + "}";
     }
 
     /** @see https://stackoverflow.com/a/9924463 */
-    var STRIP_COMMENTS = /(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|("(?:\\"|[^"\r\n])*"))|(\s*=[^,\)]*))/mg;
-    var ARGUMENT_NAMES = /([^\s,]+)/g;
-
     function getFuncArgs(func) {
-        var str = func.toString().replace(STRIP_COMMENTS, '');
-        var result = str.slice(str.indexOf('(') + 1, str.indexOf(')')).match(ARGUMENT_NAMES);
+        var STRIP_COMMENTS = /(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|("(?:\\"|[^"\r\n])*"))|(\s*=[^,\)]*))/mg;
+        var ARG_NAME = /([^\s,]+)/g;
+
+        var str    = func.toString().replace(STRIP_COMMENTS, "");
+        var result = str.slice(str.indexOf('(') + 1, str.indexOf(')')).match(ARG_NAME);
 
         if (result === null) {
             return [];
@@ -75,84 +81,69 @@
         return result;
     }
 
-    function varIsObject(obj, stack, level) {
+    function dumpFunction(func, depth) {
+        var name = func.name.length > 0 ? func.name : "(anonymous)";
+        var args = getFuncArgs(func);
+
+        var functIndent = createIndentation(depth);
+        var attrIndent  = createIndentation(depth + 1);
+        var result      = "function {\n" + attrIndent + "[name] => " + name;
+
+        if (args.length > 0) {
+            result += "\n" + attrIndent + "[parameters] => " + dump(args, depth + 1, []);
+        }
+
+        return result + "\n" + functIndent + "}";
+    }
+
+    function isElement(value) {
+        if (typeof HTMLElement === "object") {
+            return value instanceof HTMLElement;
+        }
+
+        return typeof value === "object" && value !== null && value.nodeType === 1 && typeof value.nodeName === "string";
+    }
+
+    function dumpObject(obj, depth, stack) {
         if (stack.indexOf(obj) !== -1) {
             return "*RECURSION*";
         }
 
-        if (obj === null) {
-            return "NULL";
-        }
-
-        if (obj === window) {
-            return "object(window)";
-        }
-
-        if (obj === window.document) {
-            return "object(document)";
-        }
-
-        if (isElement(obj)) {
-            return "HTMLElement(" + obj.nodeName + ")";
-        }
-
-        var dump = null;
-        var length = 0;
-        var numericIndex = true;
+        // Handle recursion
         stack.push(obj);
 
-        if (Array.isArray(obj)) {
-            length = obj.length;
-            dump = "array(" + length + ") ";
-        }
-        else {
-            var name = "";
+        switch (obj) {
+            case null:
+                return "NULL";
 
-            // The object is an instance of a function
-            if (obj.constructor.name !== "Object") {
-                name = obj.constructor.name;
+            case window:
+                return "object(window)";
 
-                if (name.trim() === "") {
-                    name = "@anonymous";
+            case window.document:
+                return "object(document)";
+
+            default:
+                if (isElement(obj)) {
+                    return "HTMLElement(" + obj.nodeName + ")";
                 }
-
-                // Get the object properties
-                var proto = {};
-
-                for (var key in obj) {
-                    if (obj[key] === null || obj[key].constructor.name !== "Function") {
-                        proto[key] = obj[key];
-                    }
-                }
-
-                obj = proto;
-            }
-
-            length = Object.keys(obj).length;
-            dump = "object(" + name + ") (" + length + ") ";
-            numericIndex = false;
         }
 
-        if (length === 0) {
-            return dump + "{}";
-        }
+        var name   = typeof obj.constructor !== "undefined" ? obj.constructor.name : "";
+        var keys   = Object.keys(obj);
+        var result = "object(" + (name !== "" ? name : "@anonymous") + ") (" + keys.length + ") ";
+        var objIndent  = createIndentation(depth);
+        var propIndent = createIndentation(depth + 1);
+        result += "{\n";
 
-        var curIndent = getIndent(level);
-        var nextIndent = getIndent(level + 1);
-
-        dump += "{\n";
-        for (var i in obj) {
-            if (obj.hasOwnProperty(i)) {
-                dump += nextIndent + "[" + (numericIndex ? i : "\"" + i + "\"") + "] => " + _dump(obj[i], stack, level + 1) + "\n";
+        for (var i = 0; i < keys.length; ++i) {
+            var key = keys[i];
+            if (typeof obj.hasOwnProperty === "function" && obj.hasOwnProperty(key)) {
+                result   += propIndent + "[\"" + key + "\"] => " + dump(obj[key], depth + 1, stack) + "\n";
             }
         }
 
-        return dump + curIndent + "}";
+        return "" + result + objIndent + "}";
     }
 
-    window.var_dump = function () {
-        for (var i = 0; i < arguments.length; i++) {
-            console.log(_dump(arguments[i], [], 0));
-        }
-    };
-}(window));
+    window.var_dump = var_dump;
+})(window);
