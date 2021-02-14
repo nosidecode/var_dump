@@ -7,6 +7,8 @@
         }
     }
 
+    var_dump.INDENT_WIDTH = 4;
+
     function dump(value, depth, stack) {
         var type = typeof value;
 
@@ -36,7 +38,8 @@
     }
 
     function createIndentation(depth) {
-        depth *= 4;
+        depth *= var_dump.INDENT_WIDTH;
+
         if (String.prototype.repeat) {
             return " ".repeat(depth);
         }
@@ -54,16 +57,15 @@
     }
 
     function dumpArray(array, depth, stack) {
-        var result = "array(" + array.length + ") ";
+        var result      = "array(" + array.length + ") {\n";
         var arrayIndent = createIndentation(depth);
         var propIndent  = createIndentation(depth + 1);
-        result += "{\n";
 
         for (var i = 0; i < array.length; ++i) {
             result += propIndent + "[" + i + "] => " + dump(array[i], depth + 1, stack) + "\n";
         }
 
-        return "" + result + arrayIndent + "}";
+        return result + arrayIndent + "}";
     }
 
     /** @see https://stackoverflow.com/a/9924463 */
@@ -85,15 +87,15 @@
         var name = func.name.length > 0 ? func.name : "(anonymous)";
         var args = getFuncArgs(func);
 
-        var functIndent = createIndentation(depth);
-        var attrIndent  = createIndentation(depth + 1);
-        var result      = "function {\n" + attrIndent + "[name] => " + name;
+        var funcIndent = createIndentation(depth);
+        var attrIndent = createIndentation(depth + 1);
+        var result     = "function {\n" + attrIndent + "[name] => " + name;
 
         if (args.length > 0) {
             result += "\n" + attrIndent + "[parameters] => " + dump(args, depth + 1, []);
         }
 
-        return result + "\n" + functIndent + "}";
+        return result + "\n" + funcIndent + "}";
     }
 
     function isElement(value) {
@@ -130,19 +132,18 @@
 
         var name   = typeof obj.constructor !== "undefined" ? obj.constructor.name : "";
         var keys   = Object.keys(obj);
-        var result = "object(" + (name !== "" ? name : "@anonymous") + ") (" + keys.length + ") ";
+        var result = "object(" + (name !== "" ? name : "@anonymous") + ") (" + keys.length + ") {\n";
         var objIndent  = createIndentation(depth);
         var propIndent = createIndentation(depth + 1);
-        result += "{\n";
 
         for (var i = 0; i < keys.length; ++i) {
             var key = keys[i];
             if (typeof obj.hasOwnProperty === "function" && obj.hasOwnProperty(key)) {
-                result   += propIndent + "[\"" + key + "\"] => " + dump(obj[key], depth + 1, stack) + "\n";
+                result += propIndent + "[\"" + key + "\"] => " + dump(obj[key], depth + 1, stack) + "\n";
             }
         }
 
-        return "" + result + objIndent + "}";
+        return result + objIndent + "}";
     }
 
     window.var_dump = var_dump;
