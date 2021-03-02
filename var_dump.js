@@ -60,11 +60,18 @@
         var result      = "array(" + array.length + ") {\n";
         var arrayIndent = createIndentation(depth);
         var propIndent  = createIndentation(depth + 1);
+        
+        if (stack.indexOf(array) !== -1) {
+            return "*RECURSION*";
+        }
+        
+        stack.push(array);
 
         for (var i = 0; i < array.length; ++i) {
             result += propIndent + "[" + i + "] => " + dump(array[i], depth + 1, stack) + "\n";
         }
 
+        stack.pop();
         return result + arrayIndent + "}";
     }
 
@@ -110,8 +117,7 @@
         if (stack.indexOf(obj) !== -1) {
             return "*RECURSION*";
         }
-
-        // Handle recursion
+        
         stack.push(obj);
 
         switch (obj) {
@@ -143,6 +149,7 @@
             }
         }
 
+        stack.pop();
         return result + objIndent + "}";
     }
 
